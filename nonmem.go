@@ -40,12 +40,12 @@ func main() {
 		fmt.Println(ta)
 	}
 
-	// if len(toAdd) > 0 {
-	// 	err = subscribers.BulkSubscribe(toAdd, []lists.ListId{ls.Id("Non-Members")})
-	// 	if err != nil {
-	// 		log.Fatal(err)
-	// 	}
-	// }
+	if len(toAdd) > 0 {
+		err = subscribers.BulkSubscribe(toAdd, []lists.ListId{ls.Id("Non-Members")})
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 
 	// Fetch the "Non-Members" list.
 	nonMembersId := ls.Id("Non-Members")
