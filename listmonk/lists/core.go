@@ -2,6 +2,7 @@ package lists
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -10,9 +11,14 @@ import (
 )
 
 type ListName string
+type ListId int
+
+func (i ListId) String() string {
+	return fmt.Sprintf("%d", i)
+}
 
 type list struct {
-	Id   int      `json:"id"`
+	Id   ListId   `json:"id"`
 	Name ListName `json:"name"`
 }
 
@@ -27,7 +33,7 @@ type listData struct {
 	Data data `json:"data"`
 }
 
-type listMap map[ListName]int
+type listMap map[ListName]ListId
 
 type lists struct {
 	listNames listMap
@@ -84,6 +90,6 @@ func (l *lists) Names() []ListName {
 	return names
 }
 
-func (l *lists) Id(name ListName) int {
+func (l *lists) Id(name ListName) ListId {
 	return l.listNames[name]
 }

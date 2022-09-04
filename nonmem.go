@@ -7,6 +7,7 @@ import (
 
 	"github.com/eljobe/nonmem/listmonk"
 	"github.com/eljobe/nonmem/listmonk/lists"
+	"github.com/eljobe/nonmem/listmonk/subscribers"
 )
 
 func main() {
@@ -14,17 +15,34 @@ func main() {
 	fmt.Println("Updating a Non-Member's List.")
 	fmt.Println("Talking to Listmonk on ", listmonk.ApiUrl)
 
-	// Fetch the "Club News" list.
+	// List the lists.
 	ls, err := lists.LookupLists()
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, name := range ls.Names() {
-		fmt.Println(name, "-", ls.Id(name))
-	}
 
-	// Fetch the "Members" list.
+	// Fetch the "Club News" list.
+	clubNewsId := ls.Id("Club News")
+	cnSubs, err := subscribers.OfList(clubNewsId)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Club News", len(cnSubs), "subscribers")
+	toAdd := []subscribers.Subscriber{}
+	for _, cnSub := range cnSubs {
+		if !cnSub.IsMember() && !cnSub.IsNonMember() {
+			toAdd = append(toAdd, cnSub)
+		}
+	}
+	fmt.Println("Non-Members to add:", len(toAdd))
+
 	// Fetch the "Non-Members" list.
+	nonMembersId := ls.Id("Non-Members")
+	nmSubs, err := subscribers.OfList(nonMembersId)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Non-Memebers", len(nmSubs), "subscribers")
 
 	// Build a temorary list by subtracting "Members" from "Club News"
 	// Remove anyone from "Non-Members" who isn't in the temporary list
