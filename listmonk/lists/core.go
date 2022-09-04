@@ -35,13 +35,13 @@ type listData struct {
 
 type listMap map[ListName]ListId
 
-type lists struct {
+type Lists struct {
 	listNames listMap
 }
 
 const url = "/lists?per_page=all"
 
-func LookupLists() (*lists, error) {
+func LookupLists() (*Lists, error) {
 	listsUrl := listmonk.ApiUrl + url
 
 	lmClient := http.Client{
@@ -79,10 +79,10 @@ func LookupLists() (*lists, error) {
 		listNames[list.Name] = list.Id
 	}
 
-	return &lists{listNames}, nil
+	return &Lists{listNames}, nil
 }
 
-func (l *lists) Names() []ListName {
+func (l *Lists) Names() []ListName {
 	names := []ListName{}
 	for name, _ := range l.listNames {
 		names = append(names, name)
@@ -90,6 +90,6 @@ func (l *lists) Names() []ListName {
 	return names
 }
 
-func (l *lists) Id(name ListName) ListId {
+func (l *Lists) Id(name ListName) ListId {
 	return l.listNames[name]
 }
