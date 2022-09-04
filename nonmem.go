@@ -30,11 +30,22 @@ func main() {
 	fmt.Println("Club News", len(cnSubs), "subscribers")
 	toAdd := []subscribers.Subscriber{}
 	for _, cnSub := range cnSubs {
-		if !cnSub.IsMember() && !cnSub.IsNonMember() {
+		if cnSub.IsSubscribedTo(clubNewsId) && cnSub.IsEnabled() && !cnSub.IsMember() && !cnSub.IsNonMember() {
 			toAdd = append(toAdd, cnSub)
 		}
 	}
 	fmt.Println("Non-Members to add:", len(toAdd))
+
+	for _, ta := range toAdd {
+		fmt.Println(ta)
+	}
+
+	// if len(toAdd) > 0 {
+	// 	err = subscribers.BulkSubscribe(toAdd, []lists.ListId{ls.Id("Non-Members")})
+	// 	if err != nil {
+	// 		log.Fatal(err)
+	// 	}
+	// }
 
 	// Fetch the "Non-Members" list.
 	nonMembersId := ls.Id("Non-Members")

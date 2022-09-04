@@ -3,6 +3,7 @@ package subscribers
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -19,6 +20,7 @@ type List struct {
 }
 
 type Subscriber struct {
+	Id                      int    `json:"id"`
 	Email                   string `json:"email"`
 	Name                    string `json:"name"`
 	Status                  string `json:"status"` // enabled, disabled, or blocklisted
@@ -37,6 +39,17 @@ type subData struct {
 	Data data `json:"data"`
 }
 
+type bulkSubscribe struct {
+	SubscriberIds []int          `json:"ids"`
+	Action        string         `json:"action"`
+	ListIds       []lists.ListId `json:"target_list_ids"`
+	Status        string         `json:"status"`
+}
+
+type respData struct {
+	Message string `json:"message"`
+}
+
 const url = "/subscribers"
 const deleteUrl = "http://127.0.0.1:9000/api/subscribers/query/delete"
 const enabledQuery = "\"query=subscribers.status = 'enabled'\""
@@ -47,6 +60,19 @@ func (s *Subscriber) String() string {
 		log.Fatal(err)
 	}
 	return string(retVal)
+}
+
+func (s *Subscriber) IsEnabled() bool {
+	return s.Status == "enabled"
+}
+
+func (s *Subscriber) IsSubscribedTo(id lists.ListId) bool {
+	for _, l := range s.Lists {
+		if l.Id == id {
+			return l.SubStatus != "unsubscribed"
+		}
+	}
+	return false
 }
 
 func (s *Subscriber) IsMember() bool {
@@ -65,6 +91,57 @@ func (s *Subscriber) IsNonMember() bool {
 		}
 	}
 	return false
+}
+
+func BulkSubscribe(subs []Subscriber, listIds []lists.ListId) error {
+	subUrl := listmonk.ApiUrl + url + "/lists"
+	fmt.Println(subUrl)
+	subIds := []int{}
+	for _, s := range subs {
+		subIds = append(subIds, s.Id)
+	}
+	content := bulkSubscribe{
+		SubscriberIds: subIds,
+		Action:        "add",
+		ListIds:       listIds,
+		Status:        "confirmed",
+	}
+
+	lmClient := http.Client{
+		Timeout: time.Second * 10, //Timeout after 10 seconds
+	}
+
+	val, err := json.Marshal(content)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(http.MethodPut, subUrl, bytes.NewBuffer(val))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := lmClient.Do(req)
+	if err != nil {
+		return err
+	}
+	if resp.Body != nil {
+		defer resp.Body.Close()
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	fmt.Println(resp)
+
+	resData := respData{}
+	err = json.Unmarshal(body, &resData)
+	if err != nil {
+		return err
+	}
+	fmt.Println(resData)
+	return nil
 }
 
 func OfList(id lists.ListId) ([]Subscriber, error) {
@@ -117,10 +194,9 @@ func (s *Subscriber) Save() error {
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	resp, err := lmClient.Do(req)
+	_, err = lmClient.Do(req)
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
 	return nil
 }
