@@ -72,24 +72,6 @@ func (s *Subscriber) IsSubscribedTo(id lists.ListId) bool {
 	return false
 }
 
-func (s *Subscriber) IsMember() bool {
-	for _, l := range s.Lists {
-		if l.Name == "Members" {
-			return true
-		}
-	}
-	return false
-}
-
-func (s *Subscriber) IsNonMember() bool {
-	for _, l := range s.Lists {
-		if l.Name == "Non-Members" {
-			return true
-		}
-	}
-	return false
-}
-
 func BulkSubscribe(subs []Subscriber, listIds []lists.ListId) error {
 	subUrl := listmonk.ApiUrl + url + "/lists"
 	subIds := []int{}
