@@ -50,8 +50,6 @@ type respData struct {
 }
 
 const url = "/subscribers"
-const deleteUrl = "http://127.0.0.1:9000/api/subscribers/query/delete"
-const enabledQuery = "\"query=subscribers.status = 'enabled'\""
 
 func (s *Subscriber) String() string {
 	retVal, err := json.Marshal(s)
