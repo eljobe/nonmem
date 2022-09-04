@@ -3,7 +3,6 @@ package subscribers
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -95,7 +94,6 @@ func (s *Subscriber) IsNonMember() bool {
 
 func BulkSubscribe(subs []Subscriber, listIds []lists.ListId) error {
 	subUrl := listmonk.ApiUrl + url + "/lists"
-	fmt.Println(subUrl)
 	subIds := []int{}
 	for _, s := range subs {
 		subIds = append(subIds, s.Id)
@@ -133,14 +131,12 @@ func BulkSubscribe(subs []Subscriber, listIds []lists.ListId) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(resp)
 
 	resData := respData{}
 	err = json.Unmarshal(body, &resData)
 	if err != nil {
 		return err
 	}
-	fmt.Println(resData)
 	return nil
 }
 
