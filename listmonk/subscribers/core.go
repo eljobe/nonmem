@@ -9,13 +9,12 @@ import (
 	"time"
 
 	"github.com/eljobe/nonmem/listmonk"
-	"github.com/eljobe/nonmem/listmonk/lists"
+	"github.com/eljobe/nonmem/listmonk/models"
 )
 
 type List struct {
-	SubStatus string         `json:"subscription_status"`
-	Id        lists.ListId   `json:"id"`
-	Name      lists.ListName `json:"name"`
+	models.List
+	SubStatus string `json:"subscription_status"`
 }
 
 type Subscriber struct {
@@ -39,10 +38,10 @@ type subData struct {
 }
 
 type bulkSubscribe struct {
-	SubscriberIds []int          `json:"ids"`
-	Action        string         `json:"action"`
-	ListIds       []lists.ListId `json:"target_list_ids"`
-	Status        string         `json:"status"`
+	SubscriberIds []int           `json:"ids"`
+	Action        string          `json:"action"`
+	ListIds       []models.ListId `json:"target_list_ids"`
+	Status        string          `json:"status"`
 }
 
 type respData struct {
@@ -63,7 +62,7 @@ func (s *Subscriber) IsEnabled() bool {
 	return s.Status == "enabled"
 }
 
-func (s *Subscriber) IsSubscribedTo(id lists.ListId) bool {
+func (s *Subscriber) IsSubscribedTo(id models.ListId) bool {
 	for _, l := range s.Lists {
 		if l.Id == id {
 			return l.SubStatus != "unsubscribed"
@@ -72,7 +71,7 @@ func (s *Subscriber) IsSubscribedTo(id lists.ListId) bool {
 	return false
 }
 
-func BulkSubscribe(subs []Subscriber, listIds []lists.ListId) error {
+func BulkSubscribe(subs []Subscriber, listIds []models.ListId) error {
 	subUrl := listmonk.ApiUrl + url + "/lists"
 	subIds := []int{}
 	for _, s := range subs {
@@ -120,7 +119,7 @@ func BulkSubscribe(subs []Subscriber, listIds []lists.ListId) error {
 	return nil
 }
 
-func OfList(id lists.ListId) ([]Subscriber, error) {
+func OfList(id models.ListId) ([]Subscriber, error) {
 	listUrl := listmonk.ApiUrl + url + "?list_id=" + id.String() + "&per_page=all"
 	lmClient := http.Client{
 		Timeout: time.Second * 10, //Timeout after 10 seconds

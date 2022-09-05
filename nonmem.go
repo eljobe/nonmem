@@ -5,30 +5,27 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/eljobe/nonmem/listmonk/lists"
+	"github.com/eljobe/nonmem/listmonk"
+	"github.com/eljobe/nonmem/listmonk/models"
 	"github.com/eljobe/nonmem/listmonk/subscribers"
 	"github.com/eljobe/nonmem/zest"
 )
 
-func isImplicitNonMember(s subscribers.Subscriber, ls *lists.Lists) bool {
-	cnId := ls.Id(zest.ClubNews)
-	mId := ls.Id(zest.Members)
-	nmId := ls.Id(zest.NonMembers)
+func isImplicitNonMember(s subscribers.Subscriber, lm *listmonk.Listmonk) bool {
+	cnId := lm.MustList(zest.ClubNews).Id
+	mId := lm.MustList(zest.Members).Id
+	nmId := lm.MustList(zest.NonMembers).Id
 	return s.IsEnabled() && s.IsSubscribedTo(cnId) && !s.IsSubscribedTo(mId) && !s.IsSubscribedTo(nmId)
 }
 
 func main() {
 	flag.Parse()
 
-	// List the lists.
-	ls, err := lists.LookupLists()
-	if err != nil {
-		log.Fatal(err)
-	}
+	lm := listmonk.NewListmonk()
 
 	// Fetch the "Club News" list.
-	clubNewsId := ls.Id(zest.ClubNews)
-	cnSubs, err := subscribers.OfList(clubNewsId)
+	cnList := lm.MustList(zest.ClubNews)
+	cnSubs, err := subscribers.OfList(cnList.Id)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -36,7 +33,7 @@ func main() {
 	// Add the Non-Members that need to be added.
 	toAdd := []subscribers.Subscriber{}
 	for _, cnSub := range cnSubs {
-		if isImplicitNonMember(cnSub, ls) {
+		if isImplicitNonMember(cnSub, lm) {
 			toAdd = append(toAdd, cnSub)
 		}
 	}
@@ -47,7 +44,8 @@ func main() {
 
 	if len(toAdd) > 0 {
 		fmt.Println("Non-Members to add:", len(toAdd))
-		err = subscribers.BulkSubscribe(toAdd, []lists.ListId{ls.Id(zest.NonMembers)})
+		nmList := lm.MustList(zest.NonMembers)
+		err = subscribers.BulkSubscribe(toAdd, []models.ListId{nmList.Id})
 		if err != nil {
 			log.Fatal(err)
 		}

@@ -1,11 +1,11 @@
 package zest
 
 import (
-	"github.com/eljobe/nonmem/listmonk/lists"
+	"github.com/eljobe/nonmem/listmonk/models"
 )
 
 const (
-	ClubNews   lists.ListName = "Club News"
-	Members                   = "Members"
-	NonMembers                = "Non-Members"
+	ClubNews   models.ListName = "Club News"
+	Members                    = "Members"
+	NonMembers                 = "Non-Members"
 )

@@ -2,58 +2,31 @@ package lists
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
-	"time"
 
-	"github.com/eljobe/nonmem/listmonk"
+	"github.com/eljobe/nonmem/listmonk/models"
 )
 
-type ListName string
-type ListId int
-
-func (i ListId) String() string {
-	return fmt.Sprintf("%d", i)
-}
-
-type list struct {
-	Id   ListId   `json:"id"`
-	Name ListName `json:"name"`
-}
-
 type data struct {
-	Results []list `json:"results"`
-	Page    int    `json:"page"`
-	PerPage int    `json:"per_page"`
-	Total   int    `jsno:"total"`
+	Results []models.List `json:"results"`
+	Page    int           `json:"page"`
+	PerPage int           `json:"per_page"`
+	Total   int           `jsno:"total"`
 }
 
 type listData struct {
 	Data data `json:"data"`
 }
 
-type listMap map[ListName]ListId
-
-type Lists struct {
-	listNames listMap
-}
-
 const url = "/lists?per_page=all"
 
-func LookupLists() (*Lists, error) {
-	listsUrl := listmonk.ApiUrl + url
+type client interface {
+	Get(string) (*http.Response, error)
+}
 
-	lmClient := http.Client{
-		Timeout: time.Second * 10, // Timeout after 10 seconds
-	}
-
-	req, err := http.NewRequest(http.MethodGet, listsUrl, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	res, err := lmClient.Do(req)
+func LookupLists(c client) ([]models.List, error) {
+	res, err := c.Get(url)
 	if err != nil {
 		return nil, err
 	}
@@ -73,23 +46,5 @@ func LookupLists() (*Lists, error) {
 		return nil, err
 	}
 
-	listNames := listMap{}
-
-	for _, list := range resData.Data.Results {
-		listNames[list.Name] = list.Id
-	}
-
-	return &Lists{listNames}, nil
-}
-
-func (l *Lists) Names() []ListName {
-	names := []ListName{}
-	for name, _ := range l.listNames {
-		names = append(names, name)
-	}
-	return names
-}
-
-func (l *Lists) Id(name ListName) ListId {
-	return l.listNames[name]
+	return resData.Data.Results, nil
 }
